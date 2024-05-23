@@ -791,7 +791,7 @@ class AppWindow:
         should_return: bool
         new_data: dict[str, Any]
 
-        should_return, new_data = killswitch.check_killswitch('capi.auth'- {})
+        should_return, new_data = killswitch.check_killswitch('capi.auth', {})
         if should_return:
             logger.warning('capi.auth has been disabled via killswitch. Returning.')
             # LANG: CAPI auth aborted because of killswitch
