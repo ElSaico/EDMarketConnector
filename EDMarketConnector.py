@@ -337,12 +337,12 @@ if __name__ == '__main__':  # noqa: C901
 
     def already_running_popup():
         """Create the "already running" popup."""
-        from ttkbootstrap.dialogs import Messagebox
+        from tkinter import messagebox
         # Check for CL arg that suppresses this popup.
         if args.suppress_dupe_process_popup:
             sys.exit(0)
 
-        Messagebox.show_error(title=appname, message="An EDMarketConnector process was already running, exiting.")
+        tkinter.messagebox.showerror(title=appname, message="An EDMarketConnector process was already running, exiting.")
         sys.exit(0)
 
     journal_lock = JournalLock()
@@ -399,10 +399,11 @@ if TYPE_CHECKING:
     # isort: on
 
 
+import tkinter as tk
 import tkinter.filedialog
-import ttkbootstrap as ttk
-from ttkbootstrap.dialogs import Messagebox
-from ttkbootstrap.icons import Icon
+import tkinter.messagebox
+import customtkinter as ctk
+from PIL import Image
 import commodity
 import plug
 import prefs
@@ -431,7 +432,7 @@ class AppWindow:
 
     PADX = 5
 
-    def __init__(self, master: ttk.Window):  # noqa: C901, CCR001 # TODO - can possibly factor something out
+    def __init__(self, master: ctk.CTk):  # noqa: C901, CCR001 # TODO - can possibly factor something out
 
         self.capi_query_holdoff_time = config.get_int('querytime', default=0) + companion.capi_query_cooldown
         self.capi_fleetcarrier_query_holdoff_time = config.get_int('fleetcarrierquerytime', default=0) \
@@ -466,22 +467,22 @@ class AppWindow:
 
         else:
             self.w.tk.call('wm', 'iconphoto', self.w, '-default',
-                           ttk.PhotoImage(file=path.join(config.respath_path, 'io.edcd.EDMarketConnector.png')))
+                           ctk.CTkImage(light_image=Image.open(path.join(config.respath_path, 'io.edcd.EDMarketConnector.png'))))
 
-        frame = ttk.Frame(self.w, name=appname.lower())
-        frame.grid(sticky=ttk.NSEW)
+        frame = ctk.CTkFrame(self.w)
+        frame.grid(sticky='nsew')
         frame.columnconfigure(1, weight=1)
 
-        self.cmdr_label = ttk.Label(frame, name='cmdr_label')
-        self.cmdr = ttk.Label(frame, compound=ttk.RIGHT, anchor=ttk.W, name='cmdr')
-        self.ship_label = ttk.Label(frame, name='ship_label')
-        self.ship = HyperlinkLabel(frame, compound=ttk.RIGHT, url=self.shipyard_url, name='ship', popup_copy=True)
-        self.suit_label = ttk.Label(frame, name='suit_label')
-        self.suit = ttk.Label(frame, compound=ttk.RIGHT, anchor=ttk.W, name='suit')
-        self.system_label = ttk.Label(frame, name='system_label')
-        self.system = HyperlinkLabel(frame, compound=ttk.RIGHT, url=self.system_url, popup_copy=True, name='system')
-        self.station_label = ttk.Label(frame, name='station_label')
-        self.station = HyperlinkLabel(frame, compound=ttk.RIGHT, url=self.station_url, name='station', popup_copy=True)
+        self.cmdr_label = ctk.CTkLabel(frame, name='cmdr_label')
+        self.cmdr = ctk.CTkLabel(frame, compound='right', anchor='w', name='cmdr')
+        self.ship_label = ctk.CTkLabel(frame, name='ship_label')
+        self.ship = HyperlinkLabel(frame, compound='right', url=self.shipyard_url, name='ship', popup_copy=True)
+        self.suit_label = ctk.CTkLabel(frame, name='suit_label')
+        self.suit = ctk.CTkLabel(frame, compound='right', anchor='w', name='suit')
+        self.system_label = ctk.CTkLabel(frame, name='system_label')
+        self.system = HyperlinkLabel(frame, compound='right', url=self.system_url, popup_copy=True, name='system')
+        self.station_label = ctk.CTkLabel(frame, name='station_label')
+        self.station = HyperlinkLabel(frame, compound='right', url=self.station_url, name='station', popup_copy=True)
         # system and station text is set/updated by the 'provider' plugins
         # edsm and inara.  Look for:
         #
@@ -490,53 +491,53 @@ class AppWindow:
 
         ui_row = 1
 
-        self.cmdr_label.grid(row=ui_row, column=0, sticky=ttk.W)
-        self.cmdr.grid(row=ui_row, column=1, sticky=ttk.EW)
+        self.cmdr_label.grid(row=ui_row, column=0, sticky='w')
+        self.cmdr.grid(row=ui_row, column=1, sticky='ew')
         ui_row += 1
 
-        self.ship_label.grid(row=ui_row, column=0, sticky=ttk.W)
-        self.ship.grid(row=ui_row, column=1, sticky=ttk.EW)
+        self.ship_label.grid(row=ui_row, column=0, sticky='w')
+        self.ship.grid(row=ui_row, column=1, sticky='ew')
         ui_row += 1
 
         self.suit_grid_row = ui_row
         self.suit_shown = False
         ui_row += 1
 
-        self.system_label.grid(row=ui_row, column=0, sticky=ttk.W)
-        self.system.grid(row=ui_row, column=1, sticky=ttk.EW)
+        self.system_label.grid(row=ui_row, column=0, sticky='w')
+        self.system.grid(row=ui_row, column=1, sticky='ew')
         ui_row += 1
 
-        self.station_label.grid(row=ui_row, column=0, sticky=ttk.W)
-        self.station.grid(row=ui_row, column=1, sticky=ttk.EW)
+        self.station_label.grid(row=ui_row, column=0, sticky='w')
+        self.station.grid(row=ui_row, column=1, sticky='ew')
         ui_row += 1
 
         plugin_no = 0
         for plugin in plug.PLUGINS:
             # Per plugin separator
-            plugin_sep = ttk.Separator(
-                frame, name=f"plugin_hr_{plugin_no + 1}"
+            plugin_sep = tk.Frame(
+                frame, highlightthickness=1, name=f"plugin_hr_{plugin_no + 1}"
             )
             # Per plugin frame, for it to use as its parent for own widgets
-            plugin_frame = ttk.Frame(
+            plugin_frame = ctk.CTkFrame(
                 frame,
                 name=f"plugin_{plugin_no + 1}"
             )
             appitem = plugin.get_app(plugin_frame)
             if appitem:
                 plugin_no += 1
-                plugin_sep.grid(columnspan=2, sticky=ttk.EW)
+                plugin_sep.grid(columnspan=2, sticky='ew')
                 ui_row = frame.grid_size()[1]
                 plugin_frame.grid(
-                    row=ui_row, columnspan=2, sticky=ttk.NSEW
+                    row=ui_row, columnspan=2, sticky='nsew'
                 )
                 plugin_frame.columnconfigure(1, weight=1)
                 if isinstance(appitem, tuple) and len(appitem) == 2:
                     ui_row = frame.grid_size()[1]
-                    appitem[0].grid(row=ui_row, column=0, sticky=ttk.W)
-                    appitem[1].grid(row=ui_row, column=1, sticky=ttk.EW)
+                    appitem[0].grid(row=ui_row, column=0, sticky='w')
+                    appitem[1].grid(row=ui_row, column=1, sticky='ew')
 
                 else:
-                    appitem.grid(columnspan=2, sticky=ttk.EW)
+                    appitem.grid(columnspan=2, sticky='ew')
 
             else:
                 # This plugin didn't provide any UI, so drop the frames
@@ -544,28 +545,28 @@ class AppWindow:
                 plugin_sep.destroy()
 
         # LANG: Update button in main window
-        self.button = ttk.Button(
+        self.button = ctk.CTkButton(
             frame,
             name='update_button',
             text=tr.tl('Update'),  # LANG: Main UI Update button
             width=28,
-            default=ttk.ACTIVE,
-            state=ttk.DISABLED
+            default='active',
+            state='disabled'
         )
 
         _, ui_row = frame.grid_size()
-        self.button.grid(row=ui_row, columnspan=2, sticky=ttk.NSEW)
+        self.button.grid(row=ui_row, columnspan=2, sticky='nsew')
         self.button.bind('<Button-1>', self.capi_request_data)
 
         # Bottom 'status' line.
-        self.status = ttk.Label(frame, name='status', anchor=ttk.W)
-        self.status.grid(columnspan=2, sticky=ttk.EW)
+        self.status = ctk.CTkLabel(frame, name='status', anchor='w')
+        self.status.grid(columnspan=2, sticky='ew')
 
         for child in frame.winfo_children():
             child.grid_configure(padx=self.PADX, pady=(
-                sys.platform != 'win32' or isinstance(child, ttk.Frame)) and 2 or 0)
+                sys.platform != 'win32' or isinstance(child, ctk.CTkFrame)) and 2 or 0)
 
-        self.menubar = ttk.Menu()
+        self.menubar = tk.Menu()
 
         # This used to be *after* the menu setup for some reason, but is testing
         # as working (both internal and external) like this. -Ath
@@ -579,17 +580,17 @@ class AppWindow:
             self.updater = update.Updater(tkroot=self.w)
             self.updater.check_for_updates()  # Sparkle / WinSparkle does this automatically for packaged apps
 
-        self.file_menu = self.view_menu = ttk.Menu(self.menubar, tearoff=ttk.FALSE)
+        self.file_menu = tk.Menu(self.menubar, tearoff=False)
         self.file_menu.add_command(command=lambda: stats.StatsDialog(self.w, self.status))
         self.file_menu.add_command(command=self.save_raw)
         self.file_menu.add_command(command=lambda: prefs.PreferencesDialog(self.w, self.postprefs))
         self.file_menu.add_separator()
         self.file_menu.add_command(command=self.onexit)
         self.menubar.add_cascade(menu=self.file_menu)
-        self.edit_menu = ttk.Menu(self.menubar, tearoff=ttk.FALSE)
-        self.edit_menu.add_command(accelerator='Ctrl+C', state=ttk.DISABLED, command=self.copy)
+        self.edit_menu = tk.Menu(self.menubar, tearoff=False)
+        self.edit_menu.add_command(accelerator='Ctrl+C', state='disabled', command=self.copy)
         self.menubar.add_cascade(menu=self.edit_menu)
-        self.help_menu = ttk.Menu(self.menubar, tearoff=ttk.FALSE)  # type: ignore
+        self.help_menu = tk.Menu(self.menubar, tearoff=False)  # type: ignore
         self.help_menu.add_command(command=self.help_general)  # Documentation
         self.help_menu.add_command(command=self.help_troubleshooting)  # Troubleshooting
         self.help_menu.add_command(command=self.help_report_a_bug)  # Report A Bug
@@ -605,8 +606,8 @@ class AppWindow:
         self.menubar.add_cascade(menu=self.help_menu)
         if sys.platform == 'win32':
             # Must be added after at least one "real" menu entry
-            self.always_ontop = ttk.BooleanVar(value=bool(config.get_int('always_ontop')))
-            self.system_menu = ttk.Menu(self.menubar, name='system', tearoff=ttk.FALSE)
+            self.always_ontop = tk.BooleanVar(value=bool(config.get_int('always_ontop')))
+            self.system_menu = tk.Menu(self.menubar, name='system', tearoff=False)
             self.system_menu.add_separator()
             # LANG: Appearance - Label for checkbox to select if application always on top
             self.system_menu.add_checkbutton(label=tr.tl('Always on top'),
@@ -622,7 +623,7 @@ class AppWindow:
 
         self.drag_offset: tuple[int | None, int | None] = (None, None)
         self.w.config(menu=self.menubar)
-        self.w.resizable(ttk.TRUE, ttk.FALSE)
+        self.w.resizable(True, False)
 
         # update geometry
         if config.get_str('geometry'):
@@ -719,8 +720,8 @@ class AppWindow:
         if not self.suit_shown:
             pady = 2 if sys.platform != 'win32' else 0
 
-            self.suit_label.grid(row=self.suit_grid_row, column=0, sticky=ttk.W, padx=self.PADX, pady=pady)
-            self.suit.grid(row=self.suit_grid_row, column=1, sticky=ttk.EW, padx=self.PADX, pady=pady)
+            self.suit_label.grid(row=self.suit_grid_row, column=0, sticky='w', padx=self.PADX, pady=pady)
+            self.suit.grid(row=self.suit_grid_row, column=1, sticky='ew', padx=self.PADX, pady=pady)
             self.suit_shown = True
 
         else:
@@ -802,10 +803,10 @@ class AppWindow:
             # LANG: Status - Attempting to get a Frontier Auth Access Token
             self.status['text'] = tr.tl('Logging in...')
 
-        self.button['state'] = ttk.DISABLED
+        self.button['state'] = 'disabled'
 
-        self.file_menu.entryconfigure(0, state=ttk.DISABLED)  # Status
-        self.file_menu.entryconfigure(1, state=ttk.DISABLED)  # Save Raw Data
+        self.file_menu.entryconfigure(0, state='disabled')  # Status
+        self.file_menu.entryconfigure(1, state='disabled')  # Save Raw Data
 
         self.w.update_idletasks()
         try:
@@ -813,8 +814,8 @@ class AppWindow:
                 # LANG: Successfully authenticated with the Frontier website
                 self.status['text'] = tr.tl('Authentication successful')
 
-                self.file_menu.entryconfigure(0, state=ttk.NORMAL)  # Status
-                self.file_menu.entryconfigure(1, state=ttk.NORMAL)  # Save Raw Data
+                self.file_menu.entryconfigure(0, state='normal')  # Status
+                self.file_menu.entryconfigure(1, state='normal')  # Save Raw Data
 
         except (companion.CredentialsError, companion.ServerError, companion.ServerLagging) as e:
             self.status['text'] = str(e)
@@ -952,7 +953,7 @@ class AppWindow:
 
             # LANG: Status - Attempting to retrieve data from Frontier CAPI
             self.status['text'] = tr.tl('Fetching data...')
-            self.button['state'] = ttk.DISABLED
+            self.button['state'] = 'disabled'
             self.w.update_idletasks()
 
         query_time = int(time())
@@ -1160,7 +1161,7 @@ class AppWindow:
                     monitor.state['ShipType'] = capi_response.capi_data['ship']['name'].lower()
 
                     if not monitor.state['Modules']:
-                        self.ship.configure(state=ttk.DISABLED)
+                        self.ship.configure(state='disabled')
 
                 # We might have disabled this in the conditional above.
                 if monitor.state['Modules']:
@@ -1315,7 +1316,7 @@ class AppWindow:
                     self.cmdr['text'] = f'{monitor.cmdr}'
 
                 self.ship_label['text'] = tr.tl('Role') + ':'  # LANG: Multicrew role label in main window
-                self.ship.configure(state=ttk.NORMAL, text=crewroletext(monitor.state['Role']), url=None)
+                self.ship.configure(state='normal', text=crewroletext(monitor.state['Role']), url=None)
 
             elif monitor.cmdr:
                 if monitor.group and not config.get_bool("hide_private_group", default=False):
@@ -1338,10 +1339,10 @@ class AppWindow:
 
                 # Ensure the ship type/name text is clickable, if it should be.
                 if monitor.state['Modules']:
-                    ship_state: Literal['normal', 'disabled'] = ttk.NORMAL
+                    ship_state: Literal['normal', 'disabled'] = 'normal'
 
                 else:
-                    ship_state = ttk.DISABLED
+                    ship_state = 'disabled'
 
                 self.ship.configure(text=ship_text, url=self.shipyard_url, state=ship_state)
 
@@ -1356,7 +1357,7 @@ class AppWindow:
             self.update_suit_text()
             self.suit_show_if_set()
 
-            self.edit_menu.entryconfigure(0, state=monitor.state['SystemName'] and ttk.NORMAL or ttk.DISABLED)  # Copy
+            self.edit_menu.entryconfigure(0, state=monitor.state['SystemName'] and 'normal' or 'disabled')  # Copy
 
             if entry['event'] in (
                     'Undocked',
@@ -1485,8 +1486,8 @@ class AppWindow:
             companion.session.auth_callback()
             # LANG: Successfully authenticated with the Frontier website
             self.status['text'] = tr.tl('Authentication successful')
-            self.file_menu.entryconfigure(0, state=ttk.NORMAL)  # Status
-            self.file_menu.entryconfigure(1, state=ttk.NORMAL)  # Save Raw Data
+            self.file_menu.entryconfigure(0, state='normal')  # Status
+            self.file_menu.entryconfigure(1, state='normal')  # Save Raw Data
 
         except companion.ServerError as e:
             self.status['text'] = str(e)
@@ -1580,7 +1581,7 @@ class AppWindow:
                 monitor.mode != 'CQC' and
                 not monitor.state['Captain'] and
                 monitor.state['SystemName'] and
-                ttk.NORMAL or ttk.DISABLED
+                'normal' or 'disabled'
             )
 
     if sys.platform == 'win32':
@@ -1618,12 +1619,12 @@ class AppWindow:
         """Open Releases page in browser."""
         webbrowser.open('https://github.com/EDCD/EDMarketConnector/releases')
 
-    class HelpAbout(ttk.Toplevel):
+    class HelpAbout(ctk.CTkToplevel):
         """The applications Help > About popup."""
 
         showing: bool = False
 
-        def __init__(self, parent: ttk.Window) -> None:
+        def __init__(self, parent: ctk.CTk) -> None:
             """
             Initialize the HelpAbout popup.
 
@@ -1634,7 +1635,7 @@ class AppWindow:
 
             self.__class__.showing = True
 
-            ttk.Toplevel.__init__(self)
+            ctk.CTkToplevel.__init__(self)
 
             self.parent = parent
             # LANG: Help > About App
@@ -1649,37 +1650,34 @@ class AppWindow:
 
             # remove decoration
             if sys.platform == 'win32':
-                self.attributes('-toolwindow', ttk.TRUE)
+                self.attributes('-toolwindow', True)
 
-            self.resizable(ttk.FALSE, ttk.FALSE)
+            self.resizable(False, False)
 
-            frame = ttk.Frame(self)
-            frame.grid(sticky=ttk.NSEW)
+            frame = ctk.CTkFrame(self)
+            frame.grid(sticky='nsew')
 
             row = 1
             ############################################################
             # applongname
-            self.appname_label = ttk.Label(frame, text=applongname)
-            self.appname_label.grid(row=row, columnspan=3, sticky=ttk.EW)
+            self.appname_label = ctk.CTkLabel(frame, text=applongname)
+            self.appname_label.grid(row=row, columnspan=3, sticky='ew')
             row += 1
             ############################################################
 
             ############################################################
             # version <link to changelog>
-            ttk.Label(frame).grid(row=row, column=0)  # spacer
+            ctk.CTkLabel(frame).grid(row=row, column=0)  # spacer
             row += 1
-            self.appversion_label = ttk.Text(frame, height=1, width=len(str(appversion())), wrap=ttk.NONE, bd=0)
-            self.appversion_label.insert("1.0", str(appversion()))
-            self.appversion_label.tag_configure("center", justify="center")
-            self.appversion_label.tag_add("center", "1.0", "end")
-            self.appversion_label.config(state=ttk.DISABLED, bg=frame.cget("background"), font="TkDefaultFont")
-            self.appversion_label.grid(row=row, column=0, sticky=ttk.E)
+            self.appversion_label = ctk.CTkLabel(frame, height=1, width=len(str(appversion())), wrap='none', bd=0)
+            self.appversion_label.config(state='disabled', bg=frame.cget("background"), font="TkDefaultFont")
+            self.appversion_label.grid(row=row, column=0, sticky='e')
             # LANG: Help > Release Notes
-            self.appversion = HyperlinkLabel(frame, compound=ttk.RIGHT, text=tr.tl('Release Notes'),
+            self.appversion = HyperlinkLabel(frame, compound='right', text=tr.tl('Release Notes'),
                                              url='https://github.com/EDCD/EDMarketConnector/releases/tag/Release/'
                                                  f'{appversion_nobuild()}',
                                              underline=True)
-            self.appversion.grid(row=row, column=2, sticky=ttk.W)
+            self.appversion.grid(row=row, column=2, sticky='w')
             row += 1
             ############################################################
 
@@ -1689,20 +1687,20 @@ class AppWindow:
 
             ############################################################
             # <copyright>
-            ttk.Label(frame).grid(row=row, column=0)  # spacer
+            ctk.CTkLabel(frame).grid(row=row, column=0)  # spacer
             row += 1
-            self.copyright = ttk.Label(frame, text=copyright)
-            self.copyright.grid(row=row, columnspan=3, sticky=ttk.EW)
+            self.copyright = ctk.CTkLabel(frame, text=copyright)
+            self.copyright.grid(row=row, columnspan=3, sticky='ew')
             row += 1
             ############################################################
 
             ############################################################
             # OK button to close the window
-            ttk.Label(frame).grid(row=row, column=0)  # spacer
+            ctk.CTkLabel(frame).grid(row=row, column=0)  # spacer
             row += 1
             # LANG: Generic 'OK' button label
-            button = ttk.Button(frame, text=tr.tl('OK'), command=self.apply)
-            button.grid(row=row, column=2, sticky=ttk.E)
+            button = ctk.CTkButton(frame, text=tr.tl('OK'), command=self.apply)
+            button.grid(row=row, column=2, sticky='e')
             button.bind("<Return>", lambda event: self.apply())
             self.protocol("WM_DELETE_WINDOW", self._destroy)
             ############################################################
@@ -1892,30 +1890,30 @@ def show_killswitch_poppup(root=None):
         "Please update EDMC as soon as possible to resolve any issues.\n"
     )
 
-    tl = ttk.Toplevel(root)
+    tl = ctk.CTkToplevel(root)
     tl.wm_attributes('-topmost', True)
     tl.geometry(f'+{root.winfo_rootx()}+{root.winfo_rooty()}')
 
     tl.columnconfigure(1, weight=1)
     tl.title("EDMC Features have been disabled")
 
-    frame = ttk.Frame(tl)
+    frame = ctk.CTkFrame(tl)
     frame.grid()
-    t = ttk.Label(frame, text=text)
+    t = ctk.CTkLabel(frame, text=text)
     t.grid(columnspan=2)
     idx = 1
 
     for version in kills:
-        ttk.Label(frame, text=f'Version: {version.version}').grid(row=idx, sticky=ttk.W)
+        ctk.CTkLabel(frame, text=f'Version: {version.version}').grid(row=idx, sticky='w')
         idx += 1
         for id, kill in version.kills.items():
-            ttk.Label(frame, text=id).grid(column=0, row=idx, sticky=ttk.W, padx=(10, 0))
-            ttk.Label(frame, text=kill.reason).grid(column=1, row=idx, sticky=ttk.E, padx=(0, 10))
+            ctk.CTkLabel(frame, text=id).grid(column=0, row=idx, sticky='w', padx=(10, 0))
+            ctk.CTkLabel(frame, text=kill.reason).grid(column=1, row=idx, sticky='e', padx=(0, 10))
             idx += 1
         idx += 1
 
-    ok_button = ttk.Button(frame, text="Ok", command=tl.destroy)
-    ok_button.grid(columnspan=2, sticky=ttk.EW)
+    ok_button = ctk.CTkButton(frame, text="Ok", command=tl.destroy)
+    ok_button.grid(columnspan=2, sticky='ew')
 
 
 def validate_providers():
@@ -1956,7 +1954,7 @@ def validate_providers():
     popup_text = popup_text.replace('\\n', '\n')
     popup_text = popup_text.replace('\\r', '\r')
 
-    Messagebox.show_info(
+    tkinter.messagebox.showinfo(
         # LANG: Popup window title for Reset Providers
         tr.tl('EDMC: Default Providers Reset'),
         popup_text
@@ -2087,10 +2085,8 @@ sys.path: {sys.path}'''
 
     setup_killswitches(args.killswitches_file)
 
-    if sys.platform == 'win32':
-        ttk.utility.enable_high_dpi_awareness()
-    root = ttk.Window()
-    # TODO UI scaling on Linux
+    root = ctk.CTk()
+    # TODO UI scaling override
     #if sys.platform != 'win32' and ((f := config.get_str('font')) is not None or f != ''):
     #    size = config.get_int('font_size', default=-1)
     #    if size == -1:
@@ -2129,7 +2125,9 @@ sys.path: {sys.path}'''
         ).format(ERR=err)
         detail = detail.replace('\\n', '\n')
         detail = detail.replace('\\r', '\r')
-        msg = Messagebox.yesno(title=title, message=message, detail=detail, icon=Icon.error)
+        msg = tkinter.messagebox.askyesno(
+            title=title, message=message, detail=detail, icon=tkinter.messagebox.ERROR, type=tkinter.messagebox.YESNO
+        )
         if msg:
             webbrowser.open(
                 "https://github.com/EDCD/EDMarketConnector/issues/new?"
@@ -2159,7 +2157,7 @@ sys.path: {sys.path}'''
             popup_text = popup_text.replace('\\n', '\n')
             popup_text = popup_text.replace('\\r', '\r')
 
-            Messagebox.show_info(
+            tkinter.messagebox.showinfo(
                 # LANG: Popup window title for list of 'broken' plugins that failed to load
                 tr.tl('EDMC: Broken Plugins'),
                 popup_text
@@ -2189,7 +2187,7 @@ sys.path: {sys.path}'''
             popup_text = popup_text.replace('\\n', '\n')
             popup_text = popup_text.replace('\\r', '\r')
 
-            Messagebox.show_info(
+            tkinter.messagebox.showinfo(
                 # LANG: Popup window title for list of 'enabled' plugins that don't work with Python 3.x
                 tr.tl('EDMC: Plugins Without Python 3.x Support'),
                 popup_text
